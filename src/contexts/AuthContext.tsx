@@ -70,6 +70,13 @@ interface AuthContextType {
   showExpiryAlert: boolean;
   setShowExpiryAlert: (show: boolean) => void;
   expiredDate: string | null;
+  subscriptionStatus: {
+    isExpired: boolean;
+    isExpiringSoon: boolean;
+    daysRemaining: number;
+    shouldBlockUsers: boolean;
+    shouldShowNotification: boolean;
+  };
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -80,6 +87,44 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const [showExpiryAlert, setShowExpiryAlert] = useState(false);
   const [expiredDate, setExpiredDate] = useState<string | null>(null);
+  const [subscriptionStatus, setSubscriptionStatus] = useState({
+    isExpired: false,
+    isExpiringSoon: false,
+    daysRemaining: 0,
+    shouldBlockUsers: false,
+    shouldShowNotification: false
+  });
+
+  // Fonction pour calculer le statut de l'abonnement
+  const calculateSubscriptionStatus = (userData: any) => {
+    if (userData.subscription !== 'pro' || !userData.expiryDate) {
+      return {
+        isExpired: false,
+        isExpiringSoon: false,
+        daysRemaining: 0,
+        shouldBlockUsers: false,
+        shouldShowNotification: false
+      };
+    }
+
+    const currentDate = new Date();
+    const expiry = new Date(userData.expiryDate);
+    const timeDiff = expiry.getTime() - currentDate.getTime();
+    const daysRemaining = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
+
+    const isExpired = daysRemaining <= 0;
+    const isExpiringSoon = daysRemaining > 0 && daysRemaining <= 5;
+    const shouldBlockUsers = isExpired;
+    const shouldShowNotification = isExpiringSoon && !isExpired;
+
+    return {
+      isExpired,
+      isExpiringSoon,
+      daysRemaining: Math.max(0, daysRemaining),
+      shouldBlockUsers,
+      shouldShowNotification
+    };
+  };
 
   // Fonction pour vérifier si un utilisateur géré existe
   const checkManagedUser = async (email: string, password: string): Promise<ManagedUser | null> => {
@@ -188,6 +233,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 });
 
+            // Calculer le statut de l'abonnement
+            const status = calculateSubscriptionStatus(userData);
+            setSubscriptionStatus(status);
             
             // Vérifier l'expiration de l'abonnement à chaque connexion
             await checkSubscriptionExpiry(firebaseUser.uid, userData);
@@ -245,6 +293,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (companyDoc.exists()) {
           const companyData = companyDoc.data();
           
+          // Vérifier le statut de l'abonnement de l'entreprise
+          const status = calculateSubscriptionStatus(companyData);
+          
+          // Si l'abonnement est expiré, bloquer la connexion des utilisateurs gérés
+          if (status.shouldBlockUsers) {
+            throw new Error('ACCOUNT_BLOCKED_EXPIRED');
+          }
+          
           // Mettre à jour la dernière connexion
           await updateDoc(doc(db, 'managedUsers', managedUser.id), {
             lastLogin: new Date().toISOString()
@@ -283,6 +339,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               expiryDate: companyData.expiryDate
             }
           });
+          
+          // Mettre à jour le statut de l'abonnement
+          setSubscriptionStatus(status);
           
           return true;
         }
@@ -432,6 +491,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     showExpiryAlert,
     setShowExpiryAlert,
     expiredDate,
+    subscriptionStatus,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

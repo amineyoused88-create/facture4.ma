@@ -290,8 +290,22 @@ export default function AdminDashboard() {
                       {company.subscription === 'pro' && company.expiryDate ? (
                         <div>
                           <div>{new Date(company.expiryDate).toLocaleDateString('fr-FR')}</div>
-                          <div className="text-xs text-gray-500">
-                            {new Date(company.expiryDate) < new Date() ? 'Expiré' : 'Actif'}
+                          <div className={`text-xs ${
+                            new Date(company.expiryDate) < new Date() 
+                              ? 'text-red-600 font-medium' 
+                              : (() => {
+                                  const daysRemaining = Math.ceil((new Date(company.expiryDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+                                  return daysRemaining <= 5 ? 'text-orange-600 font-medium animate-pulse' : 'text-green-600';
+                                })()
+                          }`}>
+                            {(() => {
+                              const expiry = new Date(company.expiryDate);
+                              const now = new Date();
+                              if (expiry < now) return 'Expiré';
+                              const daysRemaining = Math.ceil((expiry.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+                              if (daysRemaining <= 5) return `Expire dans ${daysRemaining}j`;
+                              return 'Actif';
+                            })()}
                           </div>
                         </div>
                       ) : (

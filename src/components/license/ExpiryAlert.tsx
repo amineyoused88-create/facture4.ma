@@ -114,6 +114,7 @@ export default function ExpiryAlert({ isOpen, onRenew, onLater, expiryDate }: Ex
               </p>
             </div>
           </div>
+          isRenewal={true}
         </div>
       </div>
     </div>

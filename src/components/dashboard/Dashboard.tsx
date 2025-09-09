@@ -2,6 +2,7 @@ import React from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useData } from '../../contexts/DataContext';
+import { AlertTriangle } from 'lucide-react';
 import StatsCards from './StatsCards';
 import RecentInvoices from './RecentInvoices';
 import TopProducts from './TopProducts';

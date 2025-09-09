@@ -159,7 +159,7 @@ export default function UpgradePage({ onClose }: UpgradePageProps) {
                 onClick={onClose}
                 className="flex-1 px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium"
               >
-                Peut-être plus tard
+                {isRenewal ? 'Fermer' : 'Peut-être plus tard'}
               </button>
               <button
                 onClick={handleUpgrade}
@@ -200,6 +200,7 @@ export default function UpgradePage({ onClose }: UpgradePageProps) {
           setShowPaymentModal(false);
           onClose();
         }}
+        isRenewal={isRenewal}
       />
     )}
     </>

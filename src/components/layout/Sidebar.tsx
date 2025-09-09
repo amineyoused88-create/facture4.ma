@@ -208,12 +208,27 @@ export default function Sidebar({ open, setOpen, onUpgrade }: SidebarProps) {
             <div className="bg-gradient-to-r from-yellow-500 to-orange-500 rounded-lg p-3 text-white text-center">
               <div className="text-xs font-medium mb-1">👑 Pro</div>
               {user?.company.expiryDate && (
-                <div className="text-xs opacity-90">
-                  Expire le: {new Date(user.company.expiryDate).toLocaleDateString('fr-FR', {
-                    day: 'numeric',
-                    month: 'short'
-                  })}
-                </div>
+                (() => {
+                  const currentDate = new Date();
+                  const expiry = new Date(user.company.expiryDate);
+                  const timeDiff = expiry.getTime() - currentDate.getTime();
+                  const daysRemaining = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
+                  
+                  return (
+                    <div className={`text-xs ${daysRemaining <= 5 ? 'animate-pulse font-bold' : 'opacity-90'}`}>
+                      {daysRemaining <= 5 && daysRemaining > 0 ? (
+                        <span className="text-yellow-200">⚠️ Expire dans {daysRemaining} jour{daysRemaining > 1 ? 's' : ''}</span>
+                      ) : daysRemaining <= 0 ? (
+                        <span className="text-red-200">❌ Expiré</span>
+                      ) : (
+                        <span>Expire le: {expiry.toLocaleDateString('fr-FR', {
+                          day: 'numeric',
+                          month: 'short'
+                        })}</span>
+                      )}
+                    </div>
+                  );
+                })()
               )}
             </div>
           ) : isActivationPending ? (

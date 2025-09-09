@@ -13,9 +13,10 @@ interface PaymentModalProps {
   isOpen: boolean;
   onClose: () => void;
   onComplete: () => void;
+  isRenewal?: boolean;
 }
 
-export default function PaymentModal({ isOpen, onClose, onComplete }: PaymentModalProps) {
+export default function PaymentModal({ isOpen, onClose, onComplete, isRenewal = false }: PaymentModalProps) {
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [copiedField, setCopiedField] = useState<string | null>(null);
 
@@ -69,7 +70,9 @@ export default function PaymentModal({ isOpen, onClose, onComplete }: PaymentMod
                     </div>
                     <div>
                       <h2 className="text-2xl font-bold">💳 Paiement Version Pro</h2>
-                      <p className="text-sm opacity-90">299 MAD / mois</p>
+                      <p className="text-sm opacity-90">
+                        {isRenewal ? 'Renouvellement - 299 MAD / mois' : '299 MAD / mois'}
+                      </p>
                     </div>
                   </div>
                   <button
@@ -85,10 +88,13 @@ export default function PaymentModal({ isOpen, onClose, onComplete }: PaymentMod
               <div className="p-8">
                 <div className="text-center mb-6">
                   <h3 className="text-xl font-bold text-gray-900 mb-2">
-                    🏦 Informations Bancaires
+                    🏦 {isRenewal ? 'Renouvellement - Informations Bancaires' : 'Informations Bancaires'}
                   </h3>
                   <p className="text-gray-600">
-                    Effectuez votre virement bancaire avec les informations ci-dessous
+                    {isRenewal 
+                      ? 'Effectuez votre virement de renouvellement avec les informations ci-dessous'
+                      : 'Effectuez votre virement bancaire avec les informations ci-dessous'
+                    }
                   </p>
                 </div>
 
@@ -185,7 +191,7 @@ export default function PaymentModal({ isOpen, onClose, onComplete }: PaymentMod
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
                   <h4 className="font-semibold text-blue-900 mb-2">📋 Instructions</h4>
                   <ol className="text-sm text-blue-800 space-y-1">
-                    <li>1. Effectuez un virement de <strong>299 MAD</strong></li>
+                    <li>1. Effectuez un virement de <strong>299 MAD</strong> {isRenewal && '(renouvellement)'}</li>
                     <li>2. Prenez une capture d'écran du reçu</li>
                     <li>3. Cliquez sur le bouton WhatsApp ci-dessous</li>
                     <li>4. Envoyez-nous votre reçu via WhatsApp</li>
@@ -195,11 +201,11 @@ export default function PaymentModal({ isOpen, onClose, onComplete }: PaymentMod
                 {/* WhatsApp Button */}
                 <button
                   onClick={handleWhatsAppRedirect}
-                  className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white px-6 py-4 rounded-lg font-semibold transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
+                  className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white px-6 py-4 rounded-lg font-semibold transition-all duration-200 shadow-lg hover:shadow-xl"
                 >
                   <span className="flex items-center justify-center space-x-3">
                     <MessageCircle className="w-6 h-6" />
-                    <span>📱 Envoyer le reçu sur WhatsApp</span>
+                    <span>📱 {isRenewal ? 'Envoyer le reçu de renouvellement' : 'Envoyer le reçu sur WhatsApp'}</span>
                   </span>
                 </button>
 
@@ -241,10 +247,13 @@ export default function PaymentModal({ isOpen, onClose, onComplete }: PaymentMod
               
               <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-6 mb-6 border-2 border-green-200">
                 <p className="text-lg text-green-800 font-semibold mb-2">
-                  🚀 Votre abonnement PRO sera activé dans un délai maximum de 2h.
+                  🚀 Votre abonnement PRO sera {isRenewal ? 'renouvelé' : 'activé'} dans un délai maximum de 2h.
                 </p>
                 <p className="text-green-700">
-                  Si vous avez un problème, contactez notre support via WhatsApp.
+                  {isRenewal 
+                    ? 'Vos comptes utilisateurs seront automatiquement débloqués après activation.'
+                    : 'Si vous avez un problème, contactez notre support via WhatsApp.'
+                  }
                 </p>
               </div>
 

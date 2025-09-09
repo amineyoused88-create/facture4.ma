@@ -5,6 +5,8 @@ import { LanguageProvider } from './contexts/LanguageContext';
 import { DataProvider } from './contexts/DataContext';
 import { LicenseProvider } from './contexts/LicenseContext';
 import { UserManagementProvider } from './contexts/UserManagementContext';
+import ExpirationNotification from './components/auth/ExpirationNotification';
+import ExpiredAccountModal from './components/auth/ExpiredAccountModal';
 import HomePage from './components/home/HomePage';
 import Login from './components/auth/Login';
 import Dashboard from './components/dashboard/Dashboard';
@@ -32,10 +34,48 @@ import AccountManagement from './components/account/AccountManagement';
 import { SupplierProvider } from './contexts/SupplierContext';
 
 function AppContent() {
-  const { user, isAuthenticated, showExpiryAlert, setShowExpiryAlert, expiredDate } = useAuth();
+  const { user, isAuthenticated, showExpiryAlert, setShowExpiryAlert, expiredDate, subscriptionStatus } = useAuth();
   const { showSuccessModal, setShowSuccessModal, upgradeExpiryDate } = useLicense();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [showUpgradePage, setShowUpgradePage] = useState(false);
+  const [showExpirationNotification, setShowExpirationNotification] = useState(false);
+  const [showExpiredModal, setShowExpiredModal] = useState(false);
+
+  // Gérer les notifications d'expiration
+  useEffect(() => {
+    if (subscriptionStatus.shouldShowNotification) {
+      setShowExpirationNotification(true);
+    }
+    
+    if (subscriptionStatus.isExpired && user?.isAdmin) {
+      setShowExpiredModal(true);
+    }
+  }, [subscriptionStatus, user]);
+
+  const handleRenewSubscription = () => {
+    setShowExpirationNotification(false);
+    setShowUpgradePage(true);
+  };
+
+  const handleDismissNotification = () => {
+    setShowExpirationNotification(false);
+    // Masquer pour 24h
+    localStorage.setItem('dismissedExpirationNotification', new Date().toISOString());
+  };
+
+  // Vérifier si la notification a été masquée récemment
+  useEffect(() => {
+    const dismissed = localStorage.getItem('dismissedExpirationNotification');
+    if (dismissed) {
+      const dismissedDate = new Date(dismissed);
+      const now = new Date();
+      const hoursDiff = (now.getTime() - dismissedDate.getTime()) / (1000 * 60 * 60);
+      
+      if (hoursDiff < 24) {
+        setShowExpirationNotification(false);
+      }
+    }
+  }, []);
 
   if (!isAuthenticated) {
     return (
@@ -62,6 +102,16 @@ function AppContent() {
     );
   }
   return (
+    <>
+      {/* Notification d'expiration proche */}
+      {showExpirationNotification && subscriptionStatus.shouldShowNotification && (
+        <ExpirationNotification
+          daysRemaining={subscriptionStatus.daysRemaining}
+          onRenew={handleRenewSubscription}
+          onDismiss={handleDismissNotification}
+        />
+      )}
+      
     <div className="min-h-screen bg-gray-50 flex">
       <LicenseAlert onUpgrade={() => setShowUpgradePage(true)} />
       <Sidebar 
@@ -117,7 +167,18 @@ function AppContent() {
           expiryDate={upgradeExpiryDate}
         />
       )}
+      
+      {/* Modal d'abonnement expiré pour admin */}
+      {showExpiredModal && subscriptionStatus.isExpired && user?.isAdmin && (
+        <ExpiredAccountModal
+          isOpen={showExpiredModal}
+          onClose={() => setShowExpiredModal(false)}
+          isAdmin={true}
+          expiryDate={subscriptionStatus.expiryDate || ''}
+        />
+      )}
     </div>
+    </>
   );
 }
 

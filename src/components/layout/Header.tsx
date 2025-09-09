@@ -58,9 +58,22 @@ export default function Header({ sidebarOpen, setSidebarOpen }: HeaderProps) {
             <div className="text-lg font-bold text-gray-900 uppercase">
               {user.company.name}
               {!user.isAdmin && user.email !== 'admin@facture.ma' && (
-                <span className="ml-2 text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
-                  Utilisateur
-                </span>
+                (() => {
+                  // Vérifier si l'abonnement est expiré
+                  const isExpired = user?.company?.subscription === 'pro' && 
+                    user?.company?.expiryDate && 
+                    new Date(user.company.expiryDate) < new Date();
+                  
+                  return (
+                    <span className={`ml-2 text-xs px-2 py-1 rounded-full ${
+                      isExpired 
+                        ? 'bg-red-100 text-red-800 animate-pulse' 
+                        : 'bg-blue-100 text-blue-800'
+                    }`}>
+                      {isExpired ? '🔒 Bloqué' : 'Utilisateur'}
+                    </span>
+                  );
+                })()
               )}
               {user.email === 'admin@facture.ma' && (
                 <span className="ml-2 text-xs bg-red-100 text-red-800 px-2 py-1 rounded-full">
