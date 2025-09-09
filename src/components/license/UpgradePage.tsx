@@ -18,9 +18,10 @@ import {
 
 interface UpgradePageProps {
   onClose: () => void;
+  isRenewal?: boolean;
 }
 
-export default function UpgradePage({ onClose }: UpgradePageProps) {
+export default function UpgradePage({ onClose, isRenewal = false }: UpgradePageProps) {
   const { limits, getRemainingCount } = useLicense();
   const [isProcessing, setIsProcessing] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);

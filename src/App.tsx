@@ -40,6 +40,7 @@ function AppContent() {
   const [showUpgradePage, setShowUpgradePage] = useState(false);
   const [showExpirationNotification, setShowExpirationNotification] = useState(false);
   const [showExpiredModal, setShowExpiredModal] = useState(false);
+  const [isRenewalFlow, setIsRenewalFlow] = useState(false);
 
   // Gérer les notifications d'expiration
   useEffect(() => {
@@ -54,6 +55,7 @@ function AppContent() {
 
   const handleRenewSubscription = () => {
     setShowExpirationNotification(false);
+    setIsRenewalFlow(true);
     setShowUpgradePage(true);
   };
 
@@ -145,7 +147,13 @@ function AppContent() {
       
       
       {showUpgradePage && (
-        <UpgradePage onClose={() => setShowUpgradePage(false)} />
+        <UpgradePage 
+          onClose={() => {
+            setShowUpgradePage(false);
+            setIsRenewalFlow(false);
+          }} 
+          isRenewal={isRenewalFlow}
+        />
       )}
       
       {showExpiryAlert && expiredDate && (
@@ -153,6 +161,7 @@ function AppContent() {
           isOpen={showExpiryAlert}
           onRenew={() => {
             setShowExpiryAlert(false);
+            setIsRenewalFlow(true);
             setShowUpgradePage(true);
           }}
           onLater={() => setShowExpiryAlert(false)}
