@@ -35,6 +35,9 @@ export default function Sidebar({ open, setOpen, onUpgrade }: SidebarProps) {
   const isProActive = user?.company.subscription === 'pro' && user?.company.expiryDate && 
     new Date(user.company.expiryDate) > new Date();
   
+  // Pour les utilisateurs non-admin, vérifier si l'entreprise a un abonnement Pro actif
+  const canAccessProFeatures = user?.isAdmin ? isProActive : isProActive;
+
   // Vérifier si l'activation est en cours
   const isActivationPending = localStorage.getItem('proActivationPending') === 'true';
 
@@ -45,7 +48,7 @@ export default function Sidebar({ open, setOpen, onUpgrade }: SidebarProps) {
     return user.permissions[permission as keyof typeof user.permissions] || false;
   };
   const handleProFeatureClick = (e: React.MouseEvent, path: string) => {
-    if (!isProActive) {
+    if (!canAccessProFeatures) {
       e.preventDefault();
       onUpgrade();
     }
@@ -139,7 +142,7 @@ export default function Sidebar({ open, setOpen, onUpgrade }: SidebarProps) {
             {visibleMenuItems.map((item) => {
               const Icon = item.icon;
               const isProFeature = item.isPro;
-              const canAccess = !isProFeature || isProActive;
+              const canAccess = !isProFeature || canAccessProFeatures;
               
               return (
                 <li key={item.path}>

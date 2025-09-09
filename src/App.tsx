@@ -41,6 +41,7 @@ function AppContent() {
   const [showExpirationNotification, setShowExpirationNotification] = useState(false);
   const [showExpiredModal, setShowExpiredModal] = useState(false);
   const [isRenewalFlow, setIsRenewalFlow] = useState(false);
+  const [showBlockedUserModal, setShowBlockedUserModal] = useState(false);
 
   // Gérer les notifications d'expiration
   useEffect(() => {
@@ -50,6 +51,15 @@ function AppContent() {
     
     if (subscriptionStatus.isExpired && user?.isAdmin) {
       setShowExpiredModal(true);
+    }
+    
+    // Bloquer les utilisateurs non-admin si l'abonnement de l'entreprise a expiré
+    if (user && !user.isAdmin && user.email !== 'admin@facture.ma') {
+      const isCompanyProExpired = user.company.subscription !== 'pro' || 
+        (user.company.expiryDate && new Date(user.company.expiryDate) < new Date());
+      if (isCompanyProExpired) {
+        setShowBlockedUserModal(true);
+      }
     }
   }, [subscriptionStatus, user]);
 
@@ -184,6 +194,16 @@ function AppContent() {
           onClose={() => setShowExpiredModal(false)}
           isAdmin={true}
           expiryDate={subscriptionStatus.expiryDate || ''}
+        />
+      )}
+      
+      {/* Modal de blocage pour utilisateurs non-admin */}
+      {showBlockedUserModal && user && !user.isAdmin && (
+        <ExpiredAccountModal
+          isOpen={showBlockedUserModal}
+          onClose={() => setShowBlockedUserModal(false)}
+          isAdmin={false}
+          expiryDate={user.company.expiryDate || ''}
         />
       )}
     </div>

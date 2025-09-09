@@ -24,8 +24,12 @@ export default function Login() {
       if (!success) {
         setError('Email ou mot de passe incorrect');
       }
-    } catch (err) {
-      setError('Erreur de connexion');
+    } catch (err: any) {
+      if (err.message === 'ACCOUNT_BLOCKED_EXPIRED') {
+        setError('Compte bloqué : L\'abonnement Pro de votre entreprise a expiré. Contactez votre administrateur.');
+      } else {
+        setError('Erreur de connexion');
+      }
     } finally {
       setIsLoading(false);
     }

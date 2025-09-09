@@ -296,8 +296,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           // Vérifier le statut de l'abonnement de l'entreprise
           const status = calculateSubscriptionStatus(companyData);
           
-          // Si l'abonnement est expiré, bloquer la connexion des utilisateurs gérés
-          if (status.shouldBlockUsers) {
+          // Si l'abonnement est expiré ou si l'entreprise n'est plus en Pro, bloquer la connexion des utilisateurs gérés
+          if (status.shouldBlockUsers || (companyData.subscription !== 'pro')) {
             throw new Error('ACCOUNT_BLOCKED_EXPIRED');
           }
           
