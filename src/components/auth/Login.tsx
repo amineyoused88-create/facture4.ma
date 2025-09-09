@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { Building2, Lock, Mail, ArrowLeft, UserPlus } from 'lucide-react';
-import ExpiredAccountModal from './ExpiredAccountModal';
 
 export default function Login() {
   const [email, setEmail] = useState('');
