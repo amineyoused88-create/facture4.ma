@@ -148,6 +148,10 @@ interface DataContextType {
   employees: Employee[];
   overtimes: Overtime[];
   leaves: Leave[];
+  projects: Project[];
+  tasks: Task[];
+  projectComments: ProjectComment[];
+  projectFiles: ProjectFile[];
   addClient: (client: Omit<Client, 'id' | 'createdAt' | 'entrepriseId'>) => Promise<void>;
   updateClient: (id: string, client: Partial<Client>) => Promise<void>;
   deleteClient: (id: string) => Promise<void>;
@@ -171,11 +175,21 @@ interface DataContextType {
   addLeave: (leave: Omit<Leave, 'id' | 'createdAt' | 'entrepriseId'>) => Promise<void>;
   updateLeave: (id: string, leave: Partial<Leave>) => Promise<void>;
   deleteLeave: (id: string) => Promise<void>;
+  addProject: (project: Omit<Project, 'id' | 'createdAt' | 'entrepriseId'>) => Promise<void>;
+  updateProject: (id: string, project: Partial<Project>) => Promise<void>;
+  deleteProject: (id: string) => Promise<void>;
+  addTask: (task: Omit<Task, 'id' | 'createdAt' | 'entrepriseId'>) => Promise<void>;
+  updateTask: (id: string, task: Partial<Task>) => Promise<void>;
+  deleteTask: (id: string) => Promise<void>;
+  addProjectComment: (comment: Omit<ProjectComment, 'id' | 'createdAt' | 'entrepriseId'>) => Promise<void>;
+  addProjectFile: (file: Omit<ProjectFile, 'id' | 'createdAt' | 'entrepriseId'>) => Promise<void>;
   getClientById: (id: string) => Client | undefined;
   getProductById: (id: string) => Product | undefined;
   getInvoiceById: (id: string) => Invoice | undefined;
   getQuoteById: (id: string) => Quote | undefined;
   getEmployeeById: (id: string) => Employee | undefined;
+  getProjectById: (id: string) => Project | undefined;
+  getTaskById: (id: string) => Task | undefined;
   isLoading: boolean;
 }
 
@@ -190,6 +204,10 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [overtimes, setOvertimes] = useState<Overtime[]>([]);
   const [leaves, setLeaves] = useState<Leave[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [projectComments, setProjectComments] = useState<ProjectComment[]>([]);
+  const [projectFiles, setProjectFiles] = useState<ProjectFile[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
   // Générer un SKU automatique pour les produits
@@ -299,6 +317,59 @@ export function DataProvider({ children }: { children: ReactNode }) {
       } as Leave)).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
       setLeaves(leavesData);
     });
+
+    // Projets
+    const projectsQuery = query(
+      collection(db, 'projects'),
+      where('entrepriseId', '==', entrepriseId)
+    );
+    const unsubscribeProjects = onSnapshot(projectsQuery, (snapshot) => {
+      const projectsData = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      } as Project)).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      setProjects(projectsData);
+    });
+
+    // Tâches
+    const tasksQuery = query(
+      collection(db, 'tasks'),
+      where('entrepriseId', '==', entrepriseId)
+    );
+    const unsubscribeTasks = onSnapshot(tasksQuery, (snapshot) => {
+      const tasksData = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      } as Task)).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      setTasks(tasksData);
+    });
+
+    // Commentaires
+    const commentsQuery = query(
+      collection(db, 'projectComments'),
+      where('entrepriseId', '==', entrepriseId)
+    );
+    const unsubscribeComments = onSnapshot(commentsQuery, (snapshot) => {
+      const commentsData = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      } as ProjectComment)).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      setProjectComments(commentsData);
+    });
+
+    // Fichiers
+    const filesQuery = query(
+      collection(db, 'projectFiles'),
+      where('entrepriseId', '==', entrepriseId)
+    );
+    const unsubscribeFiles = onSnapshot(filesQuery, (snapshot) => {
+      const filesData = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      } as ProjectFile)).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      setProjectFiles(filesData);
+    });
+
     return () => {
       unsubscribeClients();
       unsubscribeProducts();
@@ -307,6 +378,10 @@ export function DataProvider({ children }: { children: ReactNode }) {
       unsubscribeEmployees();
       unsubscribeOvertimes();
       unsubscribeLeaves();
+      unsubscribeProjects();
+      unsubscribeTasks();
+      unsubscribeComments();
+      unsubscribeFiles();
     };
   }, [isAuthenticated, user]);
 
@@ -568,6 +643,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const getInvoiceById = (id: string) => invoices.find(invoice => invoice.id === id);
   const getQuoteById = (id: string) => quotes.find(quote => quote.id === id);
   const getEmployeeById = (id: string) => employees.find(employee => employee.id === id);
+  const getProjectById = (id: string) => projects.find(project => project.id === id);
+  const getTaskById = (id: string) => tasks.find(task => task.id === id);
 
   // Employés
   const addEmployee = async (employeeData: Omit<Employee, 'id' | 'createdAt' | 'entrepriseId'>) => {
@@ -670,6 +747,104 @@ export function DataProvider({ children }: { children: ReactNode }) {
       console.error('Erreur lors de la suppression du congé:', error);
     }
   };
+
+  // Projets
+  const addProject = async (projectData: Omit<Project, 'id' | 'createdAt' | 'entrepriseId'>) => {
+    if (!user) return;
+    
+    try {
+      await addDoc(collection(db, 'projects'), {
+        ...projectData,
+        entrepriseId: user.isAdmin ? user.id : user.entrepriseId,
+        createdAt: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error('Erreur lors de l\'ajout du projet:', error);
+    }
+  };
+
+  const updateProject = async (id: string, projectData: Partial<Project>) => {
+    try {
+      await updateDoc(doc(db, 'projects', id), {
+        ...projectData,
+        updatedAt: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error('Erreur lors de la mise à jour du projet:', error);
+    }
+  };
+
+  const deleteProject = async (id: string) => {
+    try {
+      await deleteDoc(doc(db, 'projects', id));
+    } catch (error) {
+      console.error('Erreur lors de la suppression du projet:', error);
+    }
+  };
+
+  // Tâches
+  const addTask = async (taskData: Omit<Task, 'id' | 'createdAt' | 'entrepriseId'>) => {
+    if (!user) return;
+    
+    try {
+      await addDoc(collection(db, 'tasks'), {
+        ...taskData,
+        entrepriseId: user.isAdmin ? user.id : user.entrepriseId,
+        createdAt: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error('Erreur lors de l\'ajout de la tâche:', error);
+    }
+  };
+
+  const updateTask = async (id: string, taskData: Partial<Task>) => {
+    try {
+      await updateDoc(doc(db, 'tasks', id), {
+        ...taskData,
+        updatedAt: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error('Erreur lors de la mise à jour de la tâche:', error);
+    }
+  };
+
+  const deleteTask = async (id: string) => {
+    try {
+      await deleteDoc(doc(db, 'tasks', id));
+    } catch (error) {
+      console.error('Erreur lors de la suppression de la tâche:', error);
+    }
+  };
+
+  // Commentaires
+  const addProjectComment = async (commentData: Omit<ProjectComment, 'id' | 'createdAt' | 'entrepriseId'>) => {
+    if (!user) return;
+    
+    try {
+      await addDoc(collection(db, 'projectComments'), {
+        ...commentData,
+        entrepriseId: user.isAdmin ? user.id : user.entrepriseId,
+        createdAt: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error('Erreur lors de l\'ajout du commentaire:', error);
+    }
+  };
+
+  // Fichiers
+  const addProjectFile = async (fileData: Omit<ProjectFile, 'id' | 'createdAt' | 'entrepriseId'>) => {
+    if (!user) return;
+    
+    try {
+      await addDoc(collection(db, 'projectFiles'), {
+        ...fileData,
+        entrepriseId: user.isAdmin ? user.id : user.entrepriseId,
+        createdAt: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error('Erreur lors de l\'ajout du fichier:', error);
+    }
+  };
   const value = {
     clients,
     products,
@@ -678,6 +853,10 @@ export function DataProvider({ children }: { children: ReactNode }) {
     employees,
     overtimes,
     leaves,
+    projects,
+    tasks,
+    projectComments,
+    projectFiles,
     addClient,
     updateClient,
     deleteClient,
@@ -701,11 +880,21 @@ export function DataProvider({ children }: { children: ReactNode }) {
     addLeave,
     updateLeave,
     deleteLeave,
+    addProject,
+    updateProject,
+    deleteProject,
+    addTask,
+    updateTask,
+    deleteTask,
+    addProjectComment,
+    addProjectFile,
     getClientById,
     getProductById,
     getInvoiceById,
     getQuoteById,
     getEmployeeById,
+    getProjectById,
+    getTaskById,
     updateInvoiceStatus: updateInvoice,
     isLoading,
   };

@@ -31,6 +31,7 @@ import HRManagement from './components/hr/HRManagement';
 import SupplierManagement from './components/suppliers/SupplierManagement';
 import SuppliersSection from './components/suppliers/SuppliersSection';
 import AccountManagement from './components/account/AccountManagement';
+import ProjectManagement from './components/projects/ProjectManagement';
 import { SupplierProvider } from './contexts/SupplierContext';
 
 function AppContent() {
@@ -148,6 +149,7 @@ function AppContent() {
             <Route path="/supplier-management" element={<SupplierManagement />} />
             <Route path="/hr-management" element={<HRManagement />} />
             <Route path="/account-management" element={<AccountManagement />} />
+            <Route path="/project-management" element={<ProjectManagement />} />
             <Route path="/reports" element={<Reports />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="*" element={<Navigate to="/dashboard" replace />} />

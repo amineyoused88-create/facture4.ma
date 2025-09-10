@@ -17,7 +17,8 @@ import {
   TrendingUp,
   UserCheck,
   Truck,
-  Shield
+  Shield,
+  FolderKanban
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -63,9 +64,17 @@ export default function Sidebar({ open, setOpen, onUpgrade }: SidebarProps) {
     { icon: Package, label: t('products'), path: '/products', permission: 'products' },
     { icon: Truck, label: t('Fournisseurs'), path: '/suppliers', permission: 'suppliers' },
     
+    { 
+      icon: FolderKanban, 
+      label: 'Gestion de Projet', 
+      path: '/project-management',
+      isPro: true,
+      permission: 'projectManagement'
+    },
+
      { 
       icon: Truck, 
-      label: 'Gestion Fournisseurs', 
+      label: 'Gest. Fournisseurs', 
       path: '/supplier-management',
       isPro: true,
       permission: 'supplierManagement'
@@ -74,21 +83,21 @@ export default function Sidebar({ open, setOpen, onUpgrade }: SidebarProps) {
     
     { 
       icon: TrendingUp, 
-      label: 'Gestion de Stock', 
+      label: 'Gest. de Stock', 
       path: '/stock-management',
       isPro: true,
       permission: 'stockManagement'
     },
       { 
       icon: BarChart3, 
-      label: 'Gestion financière', 
+      label: 'Gest. financière', 
       path: '/reports',
       isPro: true,
       permission: 'reports'
     },
     { 
       icon: UserCheck, 
-      label: 'Gestion Humaine', 
+      label: 'Gest. Humaine', 
       path: '/hr-management',
       isPro: true,
       permission: 'hrManagement'
@@ -97,7 +106,7 @@ export default function Sidebar({ open, setOpen, onUpgrade }: SidebarProps) {
     // Gestion de compte (seulement pour les admins Pro)
    {
       icon: Shield,
-      label: 'Gestion de Compte',
+      label: 'Gest. de Compte',
       path: '/account-management',
       isPro: true,
       permission: 'settings'
@@ -111,7 +120,7 @@ export default function Sidebar({ open, setOpen, onUpgrade }: SidebarProps) {
   return (
     <>
       <div className={`fixed inset-y-0 left-0 z-50 bg-white shadow-xl transform transition-all duration-300 ease-in-out ${
-        open ? 'w-64 translate-x-0' : 'w-16 translate-x-0'
+        open ? 'w-72 translate-x-0' : 'w-20 translate-x-0'
       }`}>
         <div className="flex items-center justify-between h-16 px-6 border-b border-gray-200">
           <div className="flex items-center space-x-3">
@@ -163,8 +172,12 @@ export default function Sidebar({ open, setOpen, onUpgrade }: SidebarProps) {
                         <div className="flex items-center space-x-2">
                           <span className="font-medium">{item.label}</span>
                           {item.isPro && (
-                            <span className="text-xs bg-yellow-400 text-yellow-900 px-1.5 py-0.5 rounded-full font-bold">
-                              PRO
+                            <span className={`text-xs px-1.5 py-0.5 rounded-full font-bold ${
+                              canAccessProFeatures 
+                                ? 'bg-orange-400 text-orange-900' 
+                                : 'bg-red-400 text-red-900'
+                            }`}>
+                              {canAccessProFeatures ? 'PRO' : 'PRO'}
                             </span>
                           )}
                         </div>
@@ -176,11 +189,11 @@ export default function Sidebar({ open, setOpen, onUpgrade }: SidebarProps) {
                       title={!open ? `${item.label} (PRO)` : undefined}
                       className={`w-full flex items-center ${open ? 'space-x-3 px-3' : 'justify-center px-2'} py-2.5 rounded-lg transition-all duration-200 group text-gray-500 hover:bg-red-50 hover:text-red-600 cursor-pointer`}
                     >
-                      <Icon className={`${open ? 'w-5 h-5' : 'w-6 h-6'} flex-shrink-0`} />
+                      <Icon className={`${open ? 'w-5 h-5' : 'w-6 h-6'} flex-shrink-0 text-red-500`} />
                       {open && (
                         <div className="flex items-center space-x-2">
                           <span className="font-medium ">{item.label}</span>
-                          <span className="text-xs bg-red-800 text-red-900 px-1.5 py-0.5 rounded-full font-bold">
+                          <span className="text-xs bg-red-500 text-white px-1.5 py-0.5 rounded-full font-bold">
                             🔒
                           </span>
                         </div>

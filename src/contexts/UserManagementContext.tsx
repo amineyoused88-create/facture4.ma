@@ -30,6 +30,7 @@ export interface UserPermissions {
   hrManagement: boolean;
   reports: boolean;
   settings: boolean;
+  projectManagement: boolean;
 }
 
 export interface ManagedUser {
@@ -70,7 +71,8 @@ const DEFAULT_PERMISSIONS: UserPermissions = {
   supplierManagement: false,
   hrManagement: false,
   reports: false,
-  settings: false
+  settings: false,
+  projectManagement: false
 };
 
 export function UserManagementProvider({ children }: { children: ReactNode }) {
